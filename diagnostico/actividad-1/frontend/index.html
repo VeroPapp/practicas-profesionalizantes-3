@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Gestión de Stock</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📦 Gestión de Stock - Planta de Reciclaje</h1>
+        
+        <div class="alert alert-success" id="successAlert"></div>
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <div class="form-section">
+            <h2>Registrar Movimiento de Stock</h2>
+            <form id="stockForm">
+                <div class="form-group">
+                    <div>
+                        <label for="material">Material:</label>
+                        <select id="material" required>
+                            <option value="">Seleccionar material</option>
+                            <option value="Vidrio">Vidrio (kg)</option>
+                            <option value="Hierro">Hierro (kg)</option>
+                            <option value="Aluminio">Aluminio (kg)</option>
+                            <option value="Cobre">Cobre (kg)</option>
+                            <option value="Bronce">Bronce (kg)</option>
+                            <option value="Cartón">Cartón (kg)</option>
+                            <option value="Papel Blanco">Papel Blanco (kg)</option>
+                            <option value="Tapas de plástico">Tapas de plástico (kg)</option>
+                            <option value="Aceite de girasol">Aceite de girasol (m³)</option>
+                            <option value="Baterías de vehículos">Baterías de vehículos (unidades)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="cantidad">Cantidad:</label>
+                        <input type="number" id="cantidad" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="tipo">Tipo de Movimiento:</label>
+                        <select id="tipo" required>
+                            <option value="compra">Compra</option>
+                            <option value="venta">Venta</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label for="fecha">Fecha:</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+                </div>
+                <button type="submit">Registrar Movimiento</button>
+            </form>
+        </div>
+
+        <h2>Stock Actual</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Unidad</th>
+                    <th>Cantidad Total</th>
+                    <th>Última Actualización</th>
+                </tr>
+            </thead>
+            <tbody id="stockTable">
+            </tbody>
+        </table>
+
+        <h2 style="margin-top: 30px;">Historial de Movimientos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Material</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody id="historialTable">
+            </tbody>
+        </table>
+    </div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

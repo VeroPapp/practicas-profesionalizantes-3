@@ -1,87 +1,20 @@
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
 import { readFileSync } from 'node:fs';
-import { DatabaseSync } from 'node:sqlite';
-import { resolve } from 'node:path';
 import { load_config } from './config/config.js';
+import { connect_db } from './database/db.js';
+import { createUser, login } from './services/userService.js';
 
 const config_data = load_config();
-
-
-//hace la conexión a la base de datos y devuelve el objeto de la base de datos o lanza un error si no se pudo conectar
-function connect_db(path) 
-{
-    const dbPath = resolve(path);
-    try 
-    {
-        const db = new DatabaseSync(dbPath);
-        return db;
-    } 
-    catch (err) 
-    {
-        throw new Error("Error al conectar a la base de datos: " + err.message);
-    }
-}
-
-// Lógica de negocio
-async function createUser(db, username, password) 
-{
-    const sql = "INSERT INTO user (username, password) VALUES (?, ?) RETURNING id";
-
-    try 
-    {
-        const stmt = db.prepare(sql);
-        const row = stmt.get(username, password);
-
-        const result = 
-        {
-            id: row.id,
-            username: username,
-            password: password
-        };
-        
-        return result;
-    } 
-    catch (err) 
-    {
-        throw err;
-    }
-}
-
 const db = connect_db(config_data.database.path);
-//const output = await createUser(db, 'test', '123456789');
 
-//simula un proceso de login, recibe un objeto con username y password, compara con los datos hardcodeados y devuelve un objeto con el resultado del proceso
-function login(input)
-{
-    const userdata =
-    {
-        username: 'admin',
-        password: '1234'
-    };
 
-    let output =
-    {
-        status: false,
-        result: null,
-        description: 'INVALID_USER_PASS'
-    };
-
-    if (input.username === userdata.username && input.password === userdata.password)
-    {
-        output.status = true;
-        output.result = input.username;
-        output.description = null;
-    }
-
-    return output;
-}
 
 
 // Manejadores
 async function login_handler(request, response)
 {
-    const url = new URL(request.url, 'http://' + config.server.ip);
+    const url = new URL(request.url, 'http://' + config_data.server.ip);
     const input = Object.fromEntries(url.searchParams);
 
     const output = login(input);
@@ -96,7 +29,7 @@ function default_handler(request, response)
 {
     try 
     {
-        const html = readFileSync(config.server.default_path, 'utf-8');
+        const html = readFileSync(config_data.server.default_path, 'utf-8');
         response.writeHead(200, { 'Content-Type': 'text/html' });
         response.end(html);
     } 
@@ -112,12 +45,12 @@ function default_handler(request, response)
 async function register_handler(request, response)
 {
     //Caso GET
-    const url = new URL(request.url, 'http://' + config.server.ip);
+    const url = new URL(request.url, 'http://' + config_data.server.ip);
     const input = Object.fromEntries(url.searchParams);
 
     try 
     {
-        const output = await createUser(db, input.username, input.password);
+        const output = createUser(db, input.username, input.password);
 
         response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(output));

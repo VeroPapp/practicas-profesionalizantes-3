@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+
 export function default_handler(request, response, config_data)
 {
     try 

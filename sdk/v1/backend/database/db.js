@@ -1,9 +1,11 @@
 import { DatabaseSync } from 'node:sqlite';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // hace la conexión a la base de datos y devuelve el objeto de la base de datos o lanza un error si no se pudo conectar
 export function connect_db(path) {
-    const dbPath = resolve(path);
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const dbPath = resolve(currentDir, path);
     try {
         const db = new DatabaseSync(dbPath);
         return db;

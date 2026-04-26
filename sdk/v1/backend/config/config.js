@@ -1,8 +1,8 @@
-const { readFileSync } = require('node:fs'); // Importa la función readFileSync del módulo fs para leer archivos de forma síncrona
+import { readFileSync } from 'node:fs';
 
 export function load_config() {
     try {
-        const data = readFileSync('./config.json', 'utf-8');
+        const data = readFileSync('./config/config.json', 'utf-8');
         console.log("Configuración cargada correctamente.");
         return JSON.parse(data);
     } catch (error) {

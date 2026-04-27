@@ -3,7 +3,6 @@ import { default_handler } from '../controller/viewController.js';
 import { show_message_handler } from '../controller/testController.js';
 
 // Ruteo - relaciona rutas con funciones que las manejan (handlers) 
-
 export function createRouter(config_data, db) {
     let router = new Map();
 

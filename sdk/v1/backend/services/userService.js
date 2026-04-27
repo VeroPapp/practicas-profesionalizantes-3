@@ -17,23 +17,19 @@ export function createUser(db, username, password) {
 }
 
 //simula un proceso de login, recibe un objeto con username y password, compara con los datos hardcodeados y devuelve un objeto con el resultado del proceso
-export function login(input)
-{
-    const userdata =
-    {
+export function login(input) {
+    const userdata = {
         username: 'admin',
         password: '1234'
     };
 
-    let output =
-    {
+    let output = {
         status: false,
         result: null,
         description: 'INVALID_USER_PASS'
     };
 
-    if (input.username === userdata.username && input.password === userdata.password)
-    {
+    if (input.username === userdata.username && input.password === userdata.password) {
         output.status = true;
         output.result = input.username;
         output.description = null;

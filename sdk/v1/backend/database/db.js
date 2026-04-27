@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 export function connect_db(path) {
     const currentDir = dirname(fileURLToPath(import.meta.url));
     const dbPath = resolve(currentDir, path);
+    
     try {
         const db = new DatabaseSync(dbPath);
         return db;

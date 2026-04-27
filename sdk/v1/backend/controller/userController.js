@@ -15,20 +15,36 @@ export async function login_handler(request, response, config_data, db)
 
 export async function register_handler(request, response, config_data, db)
 {
-    //Caso GET
-    const url = new URL(request.url, 'http://' + config_data.server.ip);
-    const input = Object.fromEntries(url.searchParams);
+    let input = {};
 
-    try 
+    if (request.method === 'POST')
     {
-        const output = createUser(db, input.username, input.password);
+        let body = '';
 
-        response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify(output));
+        request.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        request.on('end', async () => {
+            try {
+                const params = new URLSearchParams(body);
+                input = Object.fromEntries(params);
+
+                const output = await createUser(db, input.username, input.password);
+
+                response.writeHead(200, { 'Content-Type': 'application/json' });
+                response.end(JSON.stringify(output));
+            }
+            catch (err)
+            {
+                response.writeHead(500);
+                response.end(JSON.stringify({ error: err.message }));
+            }
+        });
     }
-    catch (err)
+    else
     {
-        response.writeHead(500);
-        response.end(JSON.stringify({ error: err.message }));
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Método no permitido. Use POST.' }));
     }
 }

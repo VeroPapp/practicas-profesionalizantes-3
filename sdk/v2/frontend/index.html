@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de autenticación</title>
+</head>
+
+<body>
+
+</body>
+
+<script>
+
+    // =========================================
+    // COMPONENTE LOGIN Y REGISTER
+    // =========================================
+
+    class AuthSection extends HTMLElement {
+
+        constructor() {
+            super();
+
+            // CONTENEDOR
+            this.container = document.createElement("div");
+
+            // TITULO PRINCIPAL
+            this.mainTitle = document.createElement("h1");
+            this.mainTitle.textContent = "Sistema de autenticación";
+
+            // =========================================
+            // ELEMENTOS DEL LOGIN
+            // =========================================  
+            this.loginTitle = document.createElement("h2");
+            this.loginTitle.textContent = "Login";
+
+            this.loginForm = document.createElement("form");
+
+            this.loginUserInput = document.createElement("input");
+            this.loginUserInput.placeholder = "Usuario";
+            this.loginUserInput.name = "username"; // nombre del campo que se enviará al backend
+
+            this.loginPasswordInput = document.createElement("input");
+            this.loginPasswordInput.placeholder = "Password";
+            this.loginPasswordInput.name = "password";
+            this.loginPasswordInput.type = "password";
+
+            this.loginButton = document.createElement("button");
+            this.loginButton.textContent = "Ingresar";
+
+            // =========================================
+            // ELEMENTOS DEL REGISTER
+            // =========================================            this.registerTitle = document.createElement("h2");
+            this.registerTitle = document.createElement("h2");
+            this.registerTitle.textContent = "Registro";
+
+            this.registerForm = document.createElement("form");
+
+            this.registerUserInput = document.createElement("input");
+            this.registerUserInput.placeholder = "Usuario";
+            this.registerUserInput.name = "username";
+
+            this.registerPasswordInput = document.createElement("input");
+            this.registerPasswordInput.placeholder = "Password";
+            this.registerPasswordInput.name = "password";
+            this.registerPasswordInput.type = "password";
+
+            this.registerButton = document.createElement("button");
+            this.registerButton.textContent = "Crear usuario";
+
+            // =========================================
+            // APPEND
+            // =========================================
+            
+            // LOGIN
+            this.loginForm.appendChild(this.loginUserInput);
+            this.loginForm.appendChild(document.createElement("br"));
+
+            this.loginForm.appendChild(this.loginPasswordInput);
+            this.loginForm.appendChild(document.createElement("br"));
+
+            this.loginForm.appendChild(this.loginButton);
+
+            // REGISTER
+            this.registerForm.appendChild(this.registerUserInput);
+            this.registerForm.appendChild(document.createElement("br"));
+
+            this.registerForm.appendChild(this.registerPasswordInput);
+            this.registerForm.appendChild(document.createElement("br"));
+
+            this.registerForm.appendChild(this.registerButton);
+
+            // CONTAINER
+            this.container.appendChild(this.mainTitle);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.loginTitle);
+            this.container.appendChild(this.loginForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.registerTitle);
+            this.container.appendChild(this.registerForm);
+
+            this.appendChild(this.container);
+        }
+
+        // =========================================
+        // MÉTODOS PARA LOGIN Y REGISTER
+        // =========================================
+
+        async onLoginSubmit(event) {
+
+            event.preventDefault(); // Evita que el formulario se envíe de forma tradicional y recargue la página
+
+            const formData = new FormData(this.loginForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+
+                if (result.status) {
+
+                    alert("Login correcto ✅");
+                    this.loginForm.reset();
+
+                } else {
+
+                    alert("Login incorrecto ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error de conexión");
+            }
+        }
+
+        async onRegisterSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.registerForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                
+                const messages = {
+                    USER_ALREADY_EXISTS: "El nombre de usuario ya existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Usuario creado correctamente ✅");
+                    this.registerForm.reset(); // Limpiar formulario después de crear usuario
+
+                } else { 
+
+                    //else 👉 “el servidor respondió, pero dijo que no se pudo hacer”
+                    alert(messages[result.description] || "No se pudo crear el usuario ❌");
+                }
+
+            } catch (error) {
+
+                //catch 👉 “no se pudo conectar con el servidor”
+                console.error(error);
+                alert("Error registrando usuario");
+            }
+        }
+
+        connectedCallback() {
+
+            this.loginForm.onsubmit = this.onLoginSubmit.bind(this);
+            this.registerForm.onsubmit = this.onRegisterSubmit.bind(this);
+        }
+
+        disconnectedCallback() {
+
+            this.loginForm.onsubmit = null;
+            this.registerForm.onsubmit = null;
+        }
+    }
+
+    customElements.define("x-auth", AuthSection);
+
+
+    // =========================================
+    // COMPONENTE USERS
+    // =========================================
+
+    class UsersSection extends HTMLElement {
+
+        constructor() {
+
+            super();
+
+            // CONTENEDOR
+            this.container = document.createElement("div");
+
+            // TITULO PRINCIPAL
+            this.userTitle = document.createElement("h2");
+            this.userTitle.textContent = "Gestión de usuarios";
+
+            // =========================================
+            // ELEMENTOS PARA AGREGAR USUARIO
+            // =========================================
+
+            this.createUserTitle = document.createElement("h3");
+            this.createUserTitle.textContent = "Agregar usuario";
+
+            this.createForm = document.createElement("form");
+
+            this.createUsernameInput = document.createElement("input");
+            this.createUsernameInput.placeholder = "Usuario";
+            this.createUsernameInput.name = "username";
+
+            this.createPasswordInput = document.createElement("input");
+            this.createPasswordInput.placeholder = "Password";
+            this.createPasswordInput.name = "password";
+            this.createPasswordInput.type = "password";
+
+            this.createButton = document.createElement("button");
+            this.createButton.textContent = "Agregar";
+
+            this.createForm.appendChild(this.createUsernameInput);
+            this.createForm.appendChild(this.createPasswordInput);
+            this.createForm.appendChild(this.createButton);
+
+
+            // =========================================
+            // ELEMENTOS PARA ELIMINAR USUARIO
+            // =========================================
+
+            this.deleteUserTitle = document.createElement("h3");
+            this.deleteUserTitle.textContent = "Eliminar usuario";
+
+            this.deleteForm = document.createElement("form");
+
+            this.deleteIdInput = document.createElement("input");
+            this.deleteIdInput.placeholder = "ID usuario";
+            this.deleteIdInput.name = "id";
+            this.deleteIdInput.type = "number";
+
+            this.deleteButton = document.createElement("button");
+            this.deleteButton.textContent = "Eliminar";
+
+            this.deleteForm.appendChild(this.deleteIdInput);
+            this.deleteForm.appendChild(this.deleteButton);
+
+
+            // =========================================
+            // ELEMENTOS PARA MODIFICAR USUARIO
+            // =========================================
+
+            this.updateUserTitle = document.createElement("h3");
+            this.updateUserTitle.textContent = "Modificar usuario";
+
+            this.updateForm = document.createElement("form");
+
+            this.updateIdInput = document.createElement("input");
+            this.updateIdInput.placeholder = "ID usuario";
+            this.updateIdInput.name = "id";
+            this.updateIdInput.type = "number";
+
+            this.updateUsernameInput = document.createElement("input");
+            this.updateUsernameInput.placeholder = "Nuevo usuario";
+            this.updateUsernameInput.name = "username";
+
+            this.updatePasswordInput = document.createElement("input");
+            this.updatePasswordInput.placeholder = "Nuevo password";
+            this.updatePasswordInput.name = "password";
+            this.updatePasswordInput.type = "password";
+
+            this.updateButton = document.createElement("button");
+            this.updateButton.textContent = "Modificar";
+
+            this.updateForm.appendChild(this.updateIdInput);
+            this.updateForm.appendChild(this.updateUsernameInput);
+            this.updateForm.appendChild(this.updatePasswordInput);
+            this.updateForm.appendChild(this.updateButton);
+
+
+            // =========================================
+            // ELEMENTOS PARA LISTAR USUARIOS
+            // =========================================
+
+            this.listUsersTitle = document.createElement("h3");
+            this.listUsersTitle.textContent = "Listado de usuarios";
+
+            this.btnGetUsers = document.createElement("button");
+            this.btnGetUsers.textContent = "Obtener usuarios";
+
+            // TABLA
+            this.table = document.createElement("table");
+
+            this.thead = document.createElement("thead");
+            this.tbody = document.createElement("tbody");
+
+            // HEADER
+            const row = document.createElement("tr");
+
+            const thId = document.createElement("th");
+            thId.textContent = "ID";
+
+            const thUsername = document.createElement("th");
+            thUsername.textContent = "USUARIO";
+
+            row.appendChild(thId);
+            row.appendChild(thUsername);
+
+            this.thead.appendChild(row);
+
+            this.table.appendChild(this.thead);
+            this.table.appendChild(this.tbody);
+
+
+            // =========================================
+            // APPEND
+            // =========================================
+
+            this.container.appendChild(document.createElement("hr"));
+            this.container.appendChild(this.userTitle);
+
+            // CREATE
+            this.container.appendChild(this.createUserTitle);
+            this.container.appendChild(this.createForm);
+
+            // DELETE
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.deleteUserTitle);
+            this.container.appendChild(this.deleteForm);
+
+            // UPDATE
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.updateUserTitle);
+            this.container.appendChild(this.updateForm);
+
+            // LIST
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.listUsersTitle);
+            this.container.appendChild(this.btnGetUsers);
+            this.container.appendChild(this.table);
+
+            this.appendChild(this.container);
+        }
+
+
+        // =========================================
+        // CREAR USUARIO
+        // =========================================
+
+        async onCreateUserSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.createForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+
+                const messages = {
+                    USER_ALREADY_EXISTS: "El nombre de usuario ya existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Usuario creado correctamente ✅");
+                    this.createForm.reset(); 
+
+                } else { 
+
+                    alert(messages[result.description] || "No se pudo crear el usuario ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error creando usuario");
+            }
+        }
+
+
+        // =========================================
+        // ELIMINAR USUARIO
+        // =========================================
+
+        async onDeleteUserSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.deleteForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/deleteUser', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+
+                const messages = {
+                    USER_NOT_FOUND: "El ID ingresado no existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Usuario eliminado correctamente ✅");
+                    this.deleteForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo eliminar el usuario ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error eliminando usuario");
+            }
+        }
+
+
+        // =========================================
+        // MODIFICAR USUARIO
+        // =========================================
+
+        async onUpdateUserSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.updateForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/updateUser', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                const messages = {
+                    USER_NOT_FOUND: "El ID ingresado no existe ❌",
+                    USER_ALREADY_EXISTS: "El nuevo nombre de usuario ya existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Usuario modificado correctamente ✅");
+                    this.updateForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo modificar el usuario ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error modificando usuario");
+            }
+        }
+
+
+        // =========================================
+        // LISTAR USUARIOS
+        // =========================================
+
+        async getUsers() {
+
+            try {
+
+                const response = await fetch('/listUsers');
+                const users = await response.json();
+
+                // limpiar tabla para evitar que se dupliquen los usuarios cada vez que se hace click en "Obtener usuarios"
+                this.tbody.replaceChildren();
+
+                for (const user of users) {
+
+                    const tr = document.createElement("tr");
+
+                    const tdId = document.createElement("td");
+                    tdId.textContent = user.id;
+
+                    const tdUsername = document.createElement("td");
+                    tdUsername.textContent = user.username;
+
+                    tr.appendChild(tdId);
+                    tr.appendChild(tdUsername);
+
+                    this.tbody.appendChild(tr);
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error obteniendo usuarios");
+            }
+        }
+
+
+        // =========================================
+        // CICLO DE VIDA
+        // =========================================
+
+        connectedCallback() {
+
+            this.createForm.onsubmit = this.onCreateUserSubmit.bind(this);
+            this.deleteForm.onsubmit = this.onDeleteUserSubmit.bind(this);
+            this.updateForm.onsubmit = this.onUpdateUserSubmit.bind(this);
+            this.btnGetUsers.onclick = this.getUsers.bind(this);
+        }
+
+
+        disconnectedCallback() {
+
+            this.createForm.onsubmit = null;
+            this.deleteForm.onsubmit = null;
+            this.updateForm.onsubmit = null;
+            this.btnGetUsers.onclick = null;
+        }
+    }
+
+    customElements.define("x-users", UsersSection);
+
+
+    // =========================================
+    // COMPONENTE ROLES
+    // =========================================
+    
+    class RolesSection extends HTMLElement {
+        
+        constructor() {
+            super();
+
+            // CONTENEDOR
+            this.container = document.createElement("div");
+
+            // TITULO
+            this.roleTitle = document.createElement("h2");
+            this.roleTitle.textContent = "Gestión de roles";
+
+
+            // =========================================
+            // CREAR ROL
+            // =========================================
+
+            this.createTitle = document.createElement("h3");
+            this.createTitle.textContent = "Agregar rol";
+
+            this.createForm = document.createElement("form");
+
+            this.createNameInput = document.createElement("input");
+            this.createNameInput.placeholder = "Nombre rol";
+            this.createNameInput.name = "name";
+
+            this.createButton = document.createElement("button");
+            this.createButton.textContent = "Crear rol";
+
+            this.createForm.appendChild(this.createNameInput);
+            this.createForm.appendChild(this.createButton);
+
+
+            // =========================================
+            // ELIMINAR ROL
+            // =========================================
+
+            this.deleteTitle = document.createElement("h3");
+            this.deleteTitle.textContent = "Eliminar rol";
+
+            this.deleteForm = document.createElement("form");
+
+            this.deleteIdInput = document.createElement("input");
+            this.deleteIdInput.type = "number";
+            this.deleteIdInput.placeholder = "ID rol";
+            this.deleteIdInput.name = "id";
+
+            this.deleteButton = document.createElement("button");
+            this.deleteButton.textContent = "Eliminar rol";
+
+            this.deleteForm.appendChild(this.deleteIdInput);
+            this.deleteForm.appendChild(this.deleteButton);
+
+
+            // =========================================
+            // MODIFICAR ROL
+            // =========================================
+
+            this.updateTitle = document.createElement("h3");
+            this.updateTitle.textContent = "Modificar rol";
+
+            this.updateForm = document.createElement("form");
+
+            this.updateIdInput = document.createElement("input");
+            this.updateIdInput.type = "number";
+            this.updateIdInput.placeholder = "ID rol";
+            this.updateIdInput.name = "id";
+
+            this.updateNameInput = document.createElement("input");
+            this.updateNameInput.placeholder = "Nuevo nombre";
+            this.updateNameInput.name = "name";
+
+            this.updateButton = document.createElement("button");
+            this.updateButton.textContent = "Modificar rol";
+
+            this.updateForm.appendChild(this.updateIdInput);
+            this.updateForm.appendChild(this.updateNameInput);
+            this.updateForm.appendChild(this.updateButton);
+
+
+            // =========================================
+            // LISTAR ROLES
+            // =========================================
+
+            this.listTitle = document.createElement("h3");
+            this.listTitle.textContent = "Listado de roles";
+
+            this.btnGetRoles = document.createElement("button");
+            this.btnGetRoles.textContent = "Obtener roles";
+
+            // TABLA
+            this.table = document.createElement("table");
+
+            this.thead = document.createElement("thead");
+            this.tbody = document.createElement("tbody");
+
+            // HEADER
+            const row = document.createElement("tr");
+
+            const thId = document.createElement("th");
+            thId.textContent = "ID";
+
+            const thName = document.createElement("th");
+            thName.textContent = "ROL";
+
+            row.appendChild(thId);
+            row.appendChild(thName);
+
+            this.thead.appendChild(row);
+
+            this.table.appendChild(this.thead);
+            this.table.appendChild(this.tbody);
+
+
+            // =========================================
+            // APPEND
+            // =========================================
+
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.roleTitle);
+
+            // CREAR
+            this.container.appendChild(this.createTitle);
+            this.container.appendChild(this.createForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // ELIMINAR
+            this.container.appendChild(this.deleteTitle);
+            this.container.appendChild(this.deleteForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // MODIFICAR
+            this.container.appendChild(this.updateTitle);
+            this.container.appendChild(this.updateForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // LISTAR
+            this.container.appendChild(this.listTitle);
+            this.container.appendChild(this.btnGetRoles);
+            this.container.appendChild(this.table);
+
+            this.appendChild(this.container);
+        }
+
+
+        // =========================================
+        // CREAR ROL
+        // =========================================
+
+            async onCreateRoleSubmit(event) {
+
+                event.preventDefault();
+
+                const formData = new FormData(this.createForm);
+                const data = new URLSearchParams(formData);
+
+                try {
+
+                    const response = await fetch('/createRole', {
+                        method: 'POST',
+                        body: data
+                    });
+
+                    const result = await response.json();
+                    const messages = {
+                        ROLE_ALREADY_EXISTS: "El nombre de rol ya existe ❌"
+                    };
+                    
+                    if (result.status) {
+
+                        alert("Rol creado correctamente ✅");
+                        this.createForm.reset();
+
+                    } else {
+
+                        alert(messages[result.description] || "No se pudo crear el rol ❌");
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert("Error creando rol");
+                }
+            }
+
+
+            // =========================================
+            // ELIMINAR ROL
+            // =========================================
+
+            async onDeleteRoleSubmit(event) {
+
+                event.preventDefault();
+
+                const formData = new FormData(this.deleteForm);
+                const data = new URLSearchParams(formData);
+
+                try {
+
+                    const response = await fetch('/deleteRole', {
+                        method: 'POST',
+                        body: data
+                    });
+
+                    const result = await response.json();
+                    const messages = {
+                        ROLE_NOT_FOUND: "El ID ingresado no existe ❌",
+                        ROLE_HAS_USERS: "No se puede eliminar el rol porque tiene usuarios asignados ❌"
+                    };
+
+                    if (result.status) {
+
+                        alert("Rol eliminado correctamente ✅");
+                        this.deleteForm.reset();
+
+                    } else {
+
+                        alert(messages[result.description] || "No se pudo eliminar el rol ❌");
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert("Error eliminando rol");
+                }
+            }
+
+
+            // =========================================
+            // MODIFICAR ROL
+            // =========================================
+
+            async onUpdateRoleSubmit(event) {
+
+                event.preventDefault();
+
+                const formData = new FormData(this.updateForm);
+                const data = new URLSearchParams(formData);
+
+                try {
+
+                    const response = await fetch('/updateRole', {
+                        method: 'POST',
+                        body: data
+                    });
+
+                    const result = await response.json();
+                    const messages = {
+                        ROLE_NOT_FOUND: "El ID ingresado no existe ❌",
+                        ROLE_ALREADY_EXISTS: "El nuevo nombre de rol ya existe ❌"
+                    };
+
+                    if (result.status) {
+
+                        alert("Rol modificado correctamente ✅");
+                        this.updateForm.reset();
+
+                    } else {
+
+                        alert(messages[result.description] || "No se pudo modificar el rol ❌");
+                    }
+
+                } catch (error) {
+
+                    console.error(error);
+                    alert("Error modificando rol");
+                }
+            }
+
+
+        // =========================================
+        // LISTAR ROLES
+        // =========================================
+
+        async getRoles() {
+
+            try {
+
+                const response = await fetch('/listRoles');
+                const roles = await response.json();
+
+                // LIMPIAR TABLA
+                this.tbody.replaceChildren();
+
+                for (const role of roles) {
+
+                    const tr = document.createElement("tr");
+
+                    const tdId = document.createElement("td");
+                    tdId.textContent = role.id;
+
+                    const tdName = document.createElement("td");
+                    tdName.textContent = role.name;
+
+                    tr.appendChild(tdId);
+                    tr.appendChild(tdName);
+
+                    this.tbody.appendChild(tr);
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error obteniendo roles");
+            }
+        }
+
+
+        // =========================================
+        // CICLO DE VIDA
+        // =========================================
+
+        connectedCallback() {
+
+            this.createForm.onsubmit = this.onCreateRoleSubmit.bind(this);
+            this.deleteForm.onsubmit = this.onDeleteRoleSubmit.bind(this);
+            this.updateForm.onsubmit = this.onUpdateRoleSubmit.bind(this);
+            this.btnGetRoles.onclick = this.getRoles.bind(this);
+        }
+
+        disconnectedCallback() {
+
+            this.createForm.onsubmit = null;
+            this.deleteForm.onsubmit = null;
+            this.updateForm.onsubmit = null;
+            this.btnGetRoles.onclick = null;
+        }
+    }
+
+    customElements.define("x-roles", RolesSection);
+
+
+    // =========================================
+    // COMPONENTE USER ROLES 
+    // =========================================
+    class UserRolesSection extends HTMLElement {
+
+        constructor() {
+            super();
+
+            // CONTENEDOR
+            this.container = document.createElement("div");
+
+            // TITULO
+            this.userRoleTitle = document.createElement("h2");
+            this.userRoleTitle.textContent = "Gestión usuario-rol";
+
+
+            // =========================================
+            // ASIGNAR ROL
+            // =========================================
+
+            this.assignTitle = document.createElement("h3");
+            this.assignTitle.textContent = "Asignar rol a usuario";
+
+            this.assignForm = document.createElement("form");
+
+            this.assignUserIdInput = document.createElement("input");
+            this.assignUserIdInput.type = "number";
+            this.assignUserIdInput.placeholder = "ID usuario";
+            this.assignUserIdInput.name = "user_id";
+
+            this.assignRoleIdInput = document.createElement("input");
+            this.assignRoleIdInput.type = "number";
+            this.assignRoleIdInput.placeholder = "ID rol";
+            this.assignRoleIdInput.name = "role_id";
+
+            this.assignButton = document.createElement("button");
+            this.assignButton.textContent = "Asignar rol";
+
+            this.assignForm.appendChild(this.assignUserIdInput);
+            this.assignForm.appendChild(this.assignRoleIdInput);
+            this.assignForm.appendChild(this.assignButton);
+
+
+            // =========================================
+            // ELIMINAR RELACION
+            // =========================================
+
+            this.deleteTitle = document.createElement("h3");
+            this.deleteTitle.textContent = "Eliminar relación";
+
+            this.deleteForm = document.createElement("form");
+
+            this.deleteUserIdInput = document.createElement("input");
+            this.deleteUserIdInput.type = "number";
+            this.deleteUserIdInput.placeholder = "ID usuario";
+            this.deleteUserIdInput.name = "user_id";
+
+            this.deleteRoleIdInput = document.createElement("input");
+            this.deleteRoleIdInput.type = "number";
+            this.deleteRoleIdInput.placeholder = "ID rol";
+            this.deleteRoleIdInput.name = "role_id";
+
+            this.deleteButton = document.createElement("button");
+            this.deleteButton.textContent = "Eliminar relación";
+
+            this.deleteForm.appendChild(this.deleteUserIdInput);
+            this.deleteForm.appendChild(this.deleteRoleIdInput);
+            this.deleteForm.appendChild(this.deleteButton);
+
+
+            // =========================================
+            // LISTAR RELACIONES
+            // =========================================
+
+            this.listTitle = document.createElement("h3");
+            this.listTitle.textContent = "Listado usuario-rol";
+
+            this.btnGetUserRoles = document.createElement("button");
+            this.btnGetUserRoles.textContent = "Obtener relaciones";
+
+
+            // =========================================
+            // TABLA
+            // =========================================
+
+            this.table = document.createElement("table");
+
+            this.thead = document.createElement("thead");
+            this.tbody = document.createElement("tbody");
+
+            // HEADER
+            const row = document.createElement("tr");
+
+            const thId = document.createElement("th");
+            thId.textContent = "ID";
+
+            const thUsername = document.createElement("th");
+            thUsername.textContent = "USUARIO";
+
+            const thRole = document.createElement("th");
+            thRole.textContent = "ROL";
+
+            row.appendChild(thId);
+            row.appendChild(thUsername);
+            row.appendChild(thRole);
+
+            this.thead.appendChild(row);
+
+            this.table.appendChild(this.thead);
+            this.table.appendChild(this.tbody);
+
+
+            // =========================================
+            // APPEND
+            // =========================================
+
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.userRoleTitle);
+
+            // ASIGNAR
+            this.container.appendChild(this.assignTitle);
+            this.container.appendChild(this.assignForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // ELIMINAR
+            this.container.appendChild(this.deleteTitle);
+            this.container.appendChild(this.deleteForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // LISTAR
+            this.container.appendChild(this.listTitle);
+            this.container.appendChild(this.btnGetUserRoles);
+            this.container.appendChild(this.table);
+
+            this.appendChild(this.container);
+        }
+
+
+        // =========================================
+        // ASIGNAR ROL A USUARIO
+        // =========================================
+
+        async onAssignRoleSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.assignForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/assignUserRole', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                const messages = {
+                    USER_NOT_FOUND: "El ID de usuario no existe ❌",
+                    ROLE_NOT_FOUND: "El ID de rol no existe ❌",
+                    ROLE_ALREADY_ASSIGNED_TO_USER: "El usuario ya tiene asignado ese rol ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Rol asignado correctamente ✅");
+                    this.assignForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo asignar el rol ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error asignando rol");
+            }
+        }
+
+
+
+        // =========================================
+        // ELIMINAR RELACION USUARIO-ROL
+        // =========================================
+
+        async onDeleteUserRoleSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.deleteForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/deleteUserRole', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                const messages = {
+                    USER_NOT_FOUND: "El ID de usuario no existe ❌",
+                    ROLE_NOT_FOUND: "El ID de rol no existe ❌",
+                    RELATION_NOT_FOUND: "La relación usuario-rol no existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Relación eliminada correctamente ✅");
+                    this.deleteForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo eliminar la relación ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error eliminando relación");
+            }
+        }
+
+
+        // =========================================
+        // LISTAR RELACIONES USUARIO-ROL
+        // =========================================
+
+        async getUserRoles() {
+
+            try {
+
+                const response = await fetch('/listUserRoles');
+                const userRoles = await response.json();
+
+                // LIMPIAR TABLA
+                this.tbody.replaceChildren();
+
+                for (const item of userRoles) {
+
+                    const tr = document.createElement("tr");
+
+                    const tdId = document.createElement("td");
+                    tdId.textContent = item.user_id;
+
+                    const tdUsername = document.createElement("td");
+                    tdUsername.textContent = item.username;
+
+                    const tdRole = document.createElement("td");
+                    tdRole.textContent = item.role_name;
+
+                    tr.appendChild(tdId);
+                    tr.appendChild(tdUsername);
+                    tr.appendChild(tdRole);
+
+                    this.tbody.appendChild(tr);
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error obteniendo relaciones");
+            }
+        }
+
+
+        // =========================================
+        // CICLO DE VIDA
+        // =========================================
+
+        connectedCallback() {
+
+            this.assignForm.onsubmit = this.onAssignRoleSubmit.bind(this);
+            this.deleteForm.onsubmit = this.onDeleteUserRoleSubmit.bind(this);
+            this.btnGetUserRoles.onclick = this.getUserRoles.bind(this);
+        }
+
+        disconnectedCallback() {
+
+            this.assignForm.onsubmit = null;
+            this.deleteForm.onsubmit = null;
+            this.btnGetUserRoles.onclick = null;
+        }
+    }
+
+    customElements.define("x-user-roles", UserRolesSection);
+
+
+    // =========================================
+    // COMPONENTE PERMISSIONS
+    // =========================================
+    class PermissionsSection extends HTMLElement {
+
+        constructor() {
+            super();
+
+            // CONTENEDOR
+            this.container = document.createElement("div");
+
+
+            // TITULO
+            this.permissionTitle = document.createElement("h2");
+            this.permissionTitle.textContent = "Gestión de permisos";
+
+
+            // =========================================
+            // ASIGNAR PERMISO
+            // =========================================
+
+            this.assignTitle = document.createElement("h3");
+            this.assignTitle.textContent = "Asignar permiso";
+
+            this.assignForm = document.createElement("form");
+
+            this.assignRoleIdInput = document.createElement("input");
+            this.assignRoleIdInput.type = "number";
+            this.assignRoleIdInput.placeholder = "ID rol";
+            this.assignRoleIdInput.name = "role_id";
+
+            this.assignEndpointIdInput = document.createElement("input");
+            this.assignEndpointIdInput.type = "number";
+            this.assignEndpointIdInput.placeholder = "ID endpoint";
+            this.assignEndpointIdInput.name = "endpoint_id";
+
+            this.assignButton = document.createElement("button");
+            this.assignButton.textContent = "Asignar permiso";
+
+            this.assignForm.appendChild(this.assignRoleIdInput);
+            this.assignForm.appendChild(this.assignEndpointIdInput);
+            this.assignForm.appendChild(this.assignButton);
+
+
+            // =========================================
+            // ELIMINAR PERMISO
+            // =========================================
+
+            this.deleteTitle = document.createElement("h3");
+            this.deleteTitle.textContent = "Eliminar permiso";
+
+            this.deleteForm = document.createElement("form");
+
+            this.deleteRoleIdInput = document.createElement("input");
+            this.deleteRoleIdInput.type = "number";
+            this.deleteRoleIdInput.placeholder = "ID rol";
+            this.deleteRoleIdInput.name = "role_id";
+
+            this.deleteEndpointIdInput = document.createElement("input");
+            this.deleteEndpointIdInput.type = "number";
+            this.deleteEndpointIdInput.placeholder = "ID endpoint";
+            this.deleteEndpointIdInput.name = "endpoint_id";
+
+            this.deleteButton = document.createElement("button");
+            this.deleteButton.textContent = "Eliminar permiso";
+
+            this.deleteForm.appendChild(this.deleteRoleIdInput);
+            this.deleteForm.appendChild(this.deleteEndpointIdInput);
+            this.deleteForm.appendChild(this.deleteButton);
+
+
+            // =========================================
+            // LISTAR PERMISOS
+            // =========================================
+
+            this.listTitle = document.createElement("h3");
+            this.listTitle.textContent = "Listado de permisos";
+
+            this.btnGetPermissions = document.createElement("button");
+            this.btnGetPermissions.textContent = "Obtener permisos";
+
+
+            // =========================================
+            // TABLA
+            // =========================================
+
+            this.table = document.createElement("table");
+
+            this.thead = document.createElement("thead");
+            this.tbody = document.createElement("tbody");
+
+            // HEADER
+            const row = document.createElement("tr");
+
+            const thIdRole = document.createElement("th");
+            thIdRole.textContent = "ID ";
+
+            const thRole = document.createElement("th");
+            thRole.textContent = "ROL";
+
+            const thIdEndpoint = document.createElement("th");
+            thIdEndpoint.textContent = "ID ";
+
+            const thEndpoint = document.createElement("th");
+            thEndpoint.textContent = "ENDPOINT";
+
+            row.appendChild(thIdRole);
+            row.appendChild(thRole);
+            row.appendChild(thIdEndpoint);
+            row.appendChild(thEndpoint);
+
+            this.thead.appendChild(row);
+
+            this.table.appendChild(this.thead);
+            this.table.appendChild(this.tbody);
+
+
+            // =========================================
+            // APPEND
+            // =========================================
+
+            this.container.appendChild(document.createElement("hr"));
+
+            this.container.appendChild(this.permissionTitle);
+
+            // ASIGNAR
+            this.container.appendChild(this.assignTitle);
+            this.container.appendChild(this.assignForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // ELIMINAR
+            this.container.appendChild(this.deleteTitle);
+            this.container.appendChild(this.deleteForm);
+
+            this.container.appendChild(document.createElement("hr"));
+
+            // LISTAR
+            this.container.appendChild(this.listTitle);
+            this.container.appendChild(this.btnGetPermissions);
+            this.container.appendChild(this.table);
+
+            this.appendChild(this.container);
+        }
+
+
+        // =========================================
+        // ASIGNAR PERMISO
+        // =========================================
+
+        async onAssignPermissionSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.assignForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/assignPermission', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                const messages = {
+                    ROLE_NOT_FOUND: "El ID de rol no existe ❌",
+                    ENDPOINT_NOT_FOUND: "El ID de endpoint no existe ❌",
+                    PERMISSION_ALREADY_EXISTS: "El rol ya tiene asignado ese permiso ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Permiso asignado correctamente ✅");
+                    this.assignForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo asignar el permiso ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error asignando permiso");
+            }
+        }
+
+
+        // =========================================
+        // ELIMINAR PERMISO
+        // =========================================
+
+        async onDeletePermissionSubmit(event) {
+
+            event.preventDefault();
+
+            const formData = new FormData(this.deleteForm);
+            const data = new URLSearchParams(formData);
+
+            try {
+
+                const response = await fetch('/deletePermission', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+                const messages = {
+                    ROLE_NOT_FOUND: "El ID de rol no existe ❌",
+                    ENDPOINT_NOT_FOUND: "El ID de endpoint no existe ❌",
+                    PERMISSION_NOT_FOUND: "El permiso no existe ❌"
+                };
+
+                if (result.status) {
+
+                    alert("Permiso eliminado correctamente ✅");
+                    this.deleteForm.reset();
+
+                } else {
+
+                    alert(messages[result.description] || "No se pudo eliminar el permiso ❌");
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error eliminando permiso");
+            }
+        }
+
+
+        // =========================================
+        // LISTAR PERMISOS
+        // =========================================
+
+        async getPermissions() {
+
+            try {
+
+                const response = await fetch('/listPermissions');
+                const permissions = await response.json();
+
+                // LIMPIAR TABLA
+                this.tbody.replaceChildren();
+
+                for (const item of permissions) {
+
+                    const tr = document.createElement("tr");
+                    
+                    const tdIdRole = document.createElement("td");
+                    tdIdRole.textContent = item.role_id;
+
+                    const tdRole = document.createElement("td");
+                    tdRole.textContent = item.role_name;
+
+                    const tdIdEndpoint = document.createElement("td");
+                    tdIdEndpoint.textContent = item.endpoint_id;
+
+                    const tdEndpoint = document.createElement("td");
+                    tdEndpoint.textContent = item.path;
+
+                    tr.appendChild(tdIdRole);
+                    tr.appendChild(tdRole);
+                    tr.appendChild(tdIdEndpoint);
+                    tr.appendChild(tdEndpoint);
+
+                    this.tbody.appendChild(tr);
+                }
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Error obteniendo permisos");
+            }
+        }
+
+
+        // =========================================
+        // CICLO DE VIDA
+        // =========================================
+
+        connectedCallback() {
+
+            this.assignForm.onsubmit = this.onAssignPermissionSubmit.bind(this);
+            this.deleteForm.onsubmit = this.onDeletePermissionSubmit.bind(this);
+            this.btnGetPermissions.onclick = this.getPermissions.bind(this);
+        }
+
+        disconnectedCallback() {
+
+            this.assignForm.onsubmit = null;
+            this.deleteForm.onsubmit = null;
+            this.btnGetPermissions.onclick = null;
+        }
+    }
+
+    customElements.define("x-permissions", PermissionsSection);
+
+
+    // =========================================
+    // MAIN
+    // =========================================
+
+    function main() {
+
+        const auth = new AuthSection();
+        const users = new UsersSection();
+        const roles = new RolesSection();
+        const userRoles = new UserRolesSection();
+        const permissions = new PermissionsSection();
+
+        document.body.appendChild(auth);
+        document.body.appendChild(users);
+        document.body.appendChild(roles);
+        document.body.appendChild(userRoles);
+        document.body.appendChild(permissions);
+    }
+
+    window.onload = main;
+
+
+</script>
+
+</html>

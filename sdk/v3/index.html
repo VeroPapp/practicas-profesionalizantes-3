@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Autenticación y Autorización</title>
+</head>
+
+<body>
+
+    <!-- ===================================== -->
+    <!-- LOGIN -->
+    <!-- ===================================== -->
+
+    <h1>Login</h1>
+
+    <label>Usuario:</label>
+		<input type="text" id="username">
+    <br><br>
+
+    <label>Password:</label>
+    	<input type="password" id="password">
+    <br><br>
+
+    <button id="btnLogin">Iniciar sesión</button>
+
+    <button id="btnLogout">Cerrar sesión</button>
+
+    <hr>
+
+    <!-- ===================================== -->
+    <!-- SESION -->
+    <!-- ===================================== -->
+
+    <h2>Sesión actual:</h2>
+
+    <div id="sessionInfo">Ninguna</div>
+
+    <hr>
+
+    <!-- ===================================== -->
+    <!-- PRUEBAS -->
+    <!-- ===================================== -->
+
+    <h2>Endpoints protegidos</h2>
+
+    <button id="btnLog">Ejecutar /log</button>
+
+    <br><br>
+
+    <button id="btnSayHello">Ejecutar /sayHello</button>
+
+    <hr>
+
+    <!-- ===================================== -->
+    <!-- RESULTADO -->
+    <!-- ===================================== -->
+
+    <h2>Resultado</h2>
+
+    <div id="output"></div>
+
+</body>
+
+<script>
+
+    // =====================================
+    // SESION
+    // =====================================
+
+    let current_username = null;
+
+    // =====================================
+    // OUTPUT
+    // =====================================
+
+    function show_output(message) {
+        document.getElementById("output").innerHTML = message;
+    }
+
+    // =====================================
+    // SESSION INFO
+    // =====================================
+
+    function update_session_info() {
+        const session_info = document.getElementById("sessionInfo");
+
+        if (current_username == null) {
+            session_info.innerHTML = "Ninguna";
+        }
+        else{
+			session_info.innerHTML = current_username;
+        }
+    }
+
+    // =====================================
+    // LOGIN
+    // =====================================
+
+    async function on_login_click() {
+        const username = document.getElementById("username").value;
+
+        const password = document.getElementById("password").value;
+
+        console.log("Intentando login...");
+
+        try {
+            const response =
+                await fetch(
+                    '/login',
+                    {
+                        method: 'POST',
+
+                        headers:
+                        {
+                            'Content-Type':
+                                'application/json'
+                        },
+
+                        body:
+                            JSON.stringify(
+                            {
+                                username: username,
+                                password: password
+                            })
+                    }
+                );
+
+            const result = await response.json();
+
+            console.log(result);
+
+            if (result != null) {
+                current_username = username;
+
+                update_session_info();
+
+                show_output("✅ Login correcto");
+            }
+            else {
+                show_output("❌ Login incorrecto");
+            }
+        }
+        catch (err)
+        {
+            console.error(err);
+
+            show_output("❌ Error de conexión");
+        }
+    }
+
+    // =====================================
+    // LOGOUT
+    // =====================================
+
+    async function on_logout_click() {
+        current_username = null;
+
+        update_session_info();
+
+        show_output("Sesión cerrada");
+    }
+
+    // =====================================
+    // /LOG
+    // =====================================
+
+    async function on_log_click() {
+        if (current_username == null) {
+            show_output("❌ No hay sesión");
+
+            return;
+        }
+
+        try {
+            const response =
+                await fetch(
+                    '/log?username=' + current_username
+                );
+
+            const result = await response.json();
+
+            console.log(result);
+
+            if (response.ok) {
+                show_output("✅ Acceso permitido a /log");
+            }
+            else {
+                show_output("❌ Acceso denegado a /log");
+            }
+        }
+        catch (err) {
+            console.error(err);
+
+            show_output("❌ Error de conexión");
+        }
+    }
+
+    // =====================================
+    // /SAYHELLO
+    // =====================================
+
+    async function on_say_hello_click() {
+        if (current_username == null) {
+            show_output("❌ No hay sesión");
+
+            return;
+        }
+
+        try{
+            const response =
+                await fetch(
+                    '/sayHello?username=' + current_username
+                );
+
+            const result = await response.json();
+
+            console.log(result);
+
+            if (response.ok) {
+                show_output("✅ Acceso permitido a /sayHello");
+            }
+            else {
+                show_output("❌ Acceso denegado a /sayHello");
+            }
+        }
+        catch (err)
+        {
+            console.error(err);
+
+            show_output("❌ Error de conexión");
+        }
+    }
+
+    // =====================================
+    // MAIN
+    // =====================================
+
+    function main(){
+        update_session_info();
+
+        document.getElementById("btnLogin").onclick = on_login_click;
+        document.getElementById("btnLogout").onclick = on_logout_click;
+        document.getElementById("btnLog").onclick =on_log_click;
+        document.getElementById("btnSayHello").onclick =on_say_hello_click;
+    }
+
+    window.onload = main;
+
+</script>
+
+</html>

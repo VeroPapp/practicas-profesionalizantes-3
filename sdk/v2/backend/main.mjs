@@ -1,15 +1,13 @@
 import { createServer } from 'node:http';
 import { URL } from 'node:url';
-import { load_config } from './config/config.js';
-import { connect_db } from './database/db.js';
-import { initialize_database } from './database/init.js';
-import { createRouter } from './routes/routes.js';
+import { config_data } from './config/config.js';
+import { database } from './database/db.js';
+import { create_router } from './routes/routes.js';
 
 
-const config_data = load_config();
-const db = connect_db(config_data.database.path);
-initialize_database(db);
-const router = createRouter(config_data, db); //arma el “mapa” de rutas
+database.initialize();
+
+const router = create_router(); //arma el “mapa” de rutas
 
 
 // Dispatcher - recibe las peticiones, las procesa y las redirige al manejador correspondiente (decide qué handler usar)

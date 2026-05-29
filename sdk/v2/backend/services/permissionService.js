@@ -1,4 +1,8 @@
-export function assignPermission(db, role_id, endpoint_id) {
+import { database } from '../database/db.js';
+
+const db = database.get_connection();
+
+export function assign_permission(role_id, endpoint_id) {
 
     // validar rol
     const role = db.prepare(`
@@ -59,7 +63,7 @@ export function assignPermission(db, role_id, endpoint_id) {
 }
 
 
-export function deletePermission(db, role_id, endpoint_id) {
+export function delete_permission(role_id, endpoint_id) {
 
     // validar rol
     const role = db.prepare(`
@@ -115,7 +119,7 @@ export function deletePermission(db, role_id, endpoint_id) {
 }
 
 
-export function getPermissions(db) {
+export function get_permissions() {
     const sql =
         `
         SELECT

@@ -1,4 +1,9 @@
-export function createRole(db, name) {
+import { database } from "../database/db.js";
+
+const db = database.get_connection();
+
+
+export function create_role(name) {
 
     const exists = db.prepare(`
         SELECT id FROM roles WHERE name = ?
@@ -34,7 +39,7 @@ export function createRole(db, name) {
 }
 
 
-export function deleteRole(db, id) {
+export function delete_role(id) {
 
     const role = db.prepare(`
         SELECT id FROM roles WHERE id = ?
@@ -82,7 +87,7 @@ export function deleteRole(db, id) {
 }
 
 
-export function updateRole(db, id, name) {
+export function update_role(id, name) {
 
     const role = db.prepare(`
         SELECT id FROM roles WHERE id = ?
@@ -134,7 +139,7 @@ export function updateRole(db, id, name) {
 }
 
 
-export function getRoles(db) {
+export function get_roles() {
     const sql =
         `
         SELECT *

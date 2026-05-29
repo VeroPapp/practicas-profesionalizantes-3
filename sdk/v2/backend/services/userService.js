@@ -1,4 +1,8 @@
-export function deleteUser(db, id) {
+import { database } from '../database/db.js';
+
+const db = database.get_connection();
+
+export function delete_user(id) {
     const user = db.prepare(`
         SELECT id FROM users WHERE id = ?
     `).get(id);
@@ -39,7 +43,7 @@ export function deleteUser(db, id) {
 }
 
 
-export function updateUser(db, id, username, password) {
+export function update_user(id, username, password) {
 
     const query = `
         UPDATE users
@@ -65,7 +69,7 @@ export function updateUser(db, id, username, password) {
 }
 
 
-export function getUsers(db) {
+export function get_users() {
     const sql = `
         SELECT id, username
         FROM users

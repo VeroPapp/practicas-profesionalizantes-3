@@ -1,7 +1,6 @@
-import {assignPermission, getPermissions, deletePermission} from '../services/permissionService.js';
+import { assign_permission, get_permissions, delete_permission } from '../services/permissionService.js';
 
-
-export async function assign_permission_handler(request, response, config_data, db) {
+export async function assign_permission_handler(request, response) {
     
     if (request.method === 'POST') {
         let body = '';
@@ -14,13 +13,9 @@ export async function assign_permission_handler(request, response, config_data, 
             try {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
-                const output = assignPermission(db, input.role_id, input.endpoint_id);
+                const output = assign_permission(input.role_id, input.endpoint_id);
 
-                response.writeHead(200, {
-                    'Content-Type':
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type':'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {
@@ -32,16 +27,12 @@ export async function assign_permission_handler(request, response, config_data, 
 }
 
 
-export function get_permissions_handler(request, response, db) {
+export function get_permissions_handler(request, response) {
    
     try {
-        const output = getPermissions(db);
+        const output = get_permissions();
 
-        response.writeHead(200,{
-            'Content-Type':
-                'application/json'
-        });
-
+        response.writeHead(200,{'Content-Type':'application/json'});
         response.end(JSON.stringify(output));
 
     } catch (err){
@@ -51,7 +42,7 @@ export function get_permissions_handler(request, response, db) {
 }
 
 
-export async function delete_permission_handler(request, response, config_data, db) {
+export async function delete_permission_handler(request, response) {
    
     if (request.method === 'POST') {
         let body = '';
@@ -64,13 +55,9 @@ export async function delete_permission_handler(request, response, config_data, 
             try {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
-                const output = deletePermission(db, input.role_id, input.endpoint_id);
+                const output = delete_permission(input.role_id, input.endpoint_id);
 
-                response.writeHead(200, {
-                    'Content-Type':
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type':'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {

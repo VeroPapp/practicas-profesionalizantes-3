@@ -1,4 +1,9 @@
-export function assignRoleToUser(db, user_id, role_id) {
+import { database } from '../database/db.js';
+
+const db = database.get_connection();
+
+
+export function assign_role_to_user(user_id, role_id) {
     
     // validar usuario
     const user = db.prepare(`
@@ -60,7 +65,7 @@ export function assignRoleToUser(db, user_id, role_id) {
 }
 
 
-export function deleteUserRole(db, user_id, role_id) {
+export function delete_user_role(user_id, role_id) {
         
     // validar usuario
     const user = db.prepare(`
@@ -116,7 +121,7 @@ export function deleteUserRole(db, user_id, role_id) {
 }
 
 
-export function getUserRoles(db) {
+export function get_user_roles() {
     
     const sql =
         `

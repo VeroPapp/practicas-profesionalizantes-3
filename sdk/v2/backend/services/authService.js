@@ -1,5 +1,9 @@
+import { database } from '../database/db.js';
+
+const db = database.get_connection();
+
 // Lógica de negocio - crear usuario
-export function register(db, username, password) {
+export function register(username, password) {
     
     const exists = db.prepare(`
         SELECT id FROM users WHERE username = ?
@@ -32,7 +36,7 @@ export function register(db, username, password) {
     }
 }
 
-export function login(db, username, password) {
+export function login(username, password) {
     const sql = `
         SELECT *
         FROM users

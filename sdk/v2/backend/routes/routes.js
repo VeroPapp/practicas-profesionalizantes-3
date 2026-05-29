@@ -6,34 +6,34 @@ import { get_permissions_handler, delete_permission_handler, assign_permission_h
 import { get_user_roles_handler, delete_user_role_handler, assign_user_role_handler } from '../controller/userRoleController.js';
 
 // Ruteo - relaciona rutas con funciones que las manejan (handlers) 
-export function createRouter(config_data, db) {
+export function create_router() {
     let router = new Map();
 
-    router.set('/', (req, res) => default_handler(req, res, config_data));
+    router.set('/', default_handler);
 
-    router.set('/login', (req, res) => login_handler(req, res, config_data, db));
-    router.set('/register', (req, res) => register_handler(req, res, config_data, db));
+    router.set('/login', login_handler);
+    router.set('/register', register_handler);
 
     //gestion de usuarios
-    router.set('/deleteUser', (req, res) => delete_user_handler(req, res, config_data, db));
-    router.set('/updateUser', (req, res) => update_user_handler(req, res, config_data, db));
-    router.set('/listUsers', (req, res) => get_users_handler(req, res, db));
+    router.set('/deleteUser', delete_user_handler);
+    router.set('/updateUser', update_user_handler);
+    router.set('/listUsers', get_users_handler);
 
     //gestion de roles
-    router.set('/createRole', (req, res) => create_role_handler(req, res, config_data, db));
-    router.set('/deleteRole', (req, res) => delete_role_handler(req, res, config_data, db));
-    router.set('/updateRole', (req, res) => update_role_handler(req, res, config_data, db));
-    router.set('/listRoles', (req, res) => get_roles_handler(req, res, db));
+    router.set('/createRole', create_role_handler);
+    router.set('/deleteRole', delete_role_handler);
+    router.set('/updateRole', update_role_handler);
+    router.set('/listRoles', get_roles_handler);
 
     //gestion de permisos
-    router.set('/assignPermission', (req, res) => assign_permission_handler(req, res, config_data, db));
-    router.set('/deletePermission', (req, res) => delete_permission_handler(req, res, config_data, db));
-    router.set('/listPermissions', (req, res) => get_permissions_handler(req, res, db));
+    router.set('/assignPermission', assign_permission_handler);
+    router.set('/deletePermission', delete_permission_handler);
+    router.set('/listPermissions', get_permissions_handler);
 
     //gestion de relaciones user-role
-    router.set('/assignUserRole', (req, res) => assign_user_role_handler(req, res, config_data, db));
-    router.set('/deleteUserRole', (req, res) => delete_user_role_handler(req, res, config_data, db));
-    router.set('/listUserRoles', (req, res) => get_user_roles_handler(req, res, db));
+    router.set('/assignUserRole', assign_user_role_handler);
+    router.set('/deleteUserRole', delete_user_role_handler);
+    router.set('/listUserRoles', get_user_roles_handler);
 
     return router;
 }

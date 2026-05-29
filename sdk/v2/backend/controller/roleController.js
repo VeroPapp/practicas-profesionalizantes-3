@@ -1,7 +1,7 @@
-import { getRoles, createRole, deleteRole, updateRole } from '../services/roleService.js';
+import { get_roles, create_role, delete_role, update_role } from '../services/roleService.js';
 
 
-export async function create_role_handler(request, response, config_data, db) {
+export async function create_role_handler(request, response) {
     
     if (request.method === 'POST') {
         let body = '';
@@ -14,13 +14,9 @@ export async function create_role_handler(request, response, config_data, db) {
             try {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
-                const output =  createRole(db, input.name);
+                const output =  create_role(input.name);
 
-                response.writeHead(200, {
-                    'Content-Type': 
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type':'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {
@@ -32,16 +28,12 @@ export async function create_role_handler(request, response, config_data, db) {
 }
 
 
-export function get_roles_handler(request, response, db) {
+export function get_roles_handler(request, response) {
     
     try {
-        const roles = getRoles(db);
+        const roles = get_roles();
 
-        response.writeHead(200, {
-            'Content-Type': 
-                'application/json'
-        });
-
+        response.writeHead(200, {'Content-Type':'application/json'});
         response.end(JSON.stringify(roles));
 
     } catch (err){
@@ -51,7 +43,7 @@ export function get_roles_handler(request, response, db) {
 }
 
 
-export async function delete_role_handler(request, response, config_data, db) {
+export async function update_role_handler(request, response){
     
     if (request.method === 'POST') {
         let body = '';
@@ -64,13 +56,9 @@ export async function delete_role_handler(request, response, config_data, db) {
             try {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
-                const output = deleteRole( db, input.id);
+                const output = update_role(input.id, input.name);
 
-                response.writeHead(200, {
-                    'Content-Type': 
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type': 'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {
@@ -82,7 +70,7 @@ export async function delete_role_handler(request, response, config_data, db) {
 }
 
 
-export async function update_role_handler(request, response, config_data, db){
+export async function delete_role_handler(request, response) {
     
     if (request.method === 'POST') {
         let body = '';
@@ -95,13 +83,9 @@ export async function update_role_handler(request, response, config_data, db){
             try {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
-                const output = updateRole(db, input.id, input.name);
+                const output = delete_role(input.id);
 
-                response.writeHead(200, {
-                    'Content-Type': 
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type':'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {

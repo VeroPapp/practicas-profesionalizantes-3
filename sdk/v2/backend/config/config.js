@@ -9,4 +9,6 @@ export function load_config() {
         console.error("Error cargando config.json.");
         throw error;
     }
-}
+};
+
+export const config_data = load_config();

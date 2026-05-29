@@ -1,49 +1,20 @@
-import { getUsers, deleteUser, updateUser } from '../services/userService.js';
+import { get_users, delete_user, update_user } from '../services/userService.js';
 
-export function get_users_handler(request, response, db) {
+export function get_users_handler(request, response) {
     try {
-        const users = getUsers(db);
+        const users = get_users();
 
         response.writeHead(200, {'Content-Type': 'application/json'});
-
         response.end(JSON.stringify(users));
 
     } catch (err) {
         response.writeHead(500);
-
         response.end(JSON.stringify({error: err.message}));
     }
 }
 
 
-export async function delete_user_handler(request, response, config_data, db) {
-    if (request.method === 'POST') {
-        let body = '';
-
-        request.on('data', chunk => {
-            body += chunk.toString();
-        });
-
-        request.on('end', () => {
-            try {
-                const params = new URLSearchParams(body);
-                const input = Object.fromEntries(params);
-                const output = deleteUser(db, input.id);
-
-                response.writeHead(200, {'Content-Type': 'application/json'});
-
-                response.end(JSON.stringify(output));
-
-            } catch (err) {
-                response.writeHead(500);
-                response.end(JSON.stringify({error: err.message}));
-            }
-        });
-    }
-}
-
-
-export async function update_user_handler(request, response, config_data, db) {
+export async function update_user_handler(request, response) {
 
     if (request.method === 'POST') {
 
@@ -61,23 +32,15 @@ export async function update_user_handler(request, response, config_data, db) {
                 const params = new URLSearchParams(body);
                 const input = Object.fromEntries(params);
                 // ACTUALIZAR USUARIO
-                const output = updateUser(db, input.id, input.username, input.password);
+                const output = update_user(input.id, input.username, input.password);
 
                 // RESPUESTA OK
-                response.writeHead(200, {
-                    'Content-Type': 
-                        'application/json'
-                });
-
+                response.writeHead(200, {'Content-Type': 'application/json'});
                 response.end(JSON.stringify(output));
 
             } catch (err) {
 
-                response.writeHead(500, {
-                    'Content-Type': 
-                        'application/json'
-                });
-
+                response.writeHead(500, {'Content-Type': 'application/json'});
                 response.end(JSON.stringify({error: err.message}));
             }
         });
@@ -85,12 +48,33 @@ export async function update_user_handler(request, response, config_data, db) {
     } else {
 
         // MÉTODO NO PERMITIDO
-        response.writeHead(405, {
-            'Content-Type': 'application/json'
+        response.writeHead(405, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify({error: 'Método no permitido'}));
+    }
+}
+
+
+export async function delete_user_handler(request, response) {
+    if (request.method === 'POST') {
+        let body = '';
+
+        request.on('data', chunk => {
+            body += chunk.toString();
         });
 
-        response.end(JSON.stringify({
-            error: 'Método no permitido'
-        }));
+        request.on('end', () => {
+            try {
+                const params = new URLSearchParams(body);
+                const input = Object.fromEntries(params);
+                const output = delete_user(input.id);
+
+                response.writeHead(200, {'Content-Type':'application/json'});
+                response.end(JSON.stringify(output));
+
+            } catch (err) {
+                response.writeHead(500);
+                response.end(JSON.stringify({error: err.message}));
+            }
+        });
     }
 }

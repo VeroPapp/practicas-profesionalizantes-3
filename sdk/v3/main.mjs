@@ -267,15 +267,14 @@ router.set('/register', register_handler);
 router.set('/log', log_handler);
 router.set('/sayHello', say_hello_handler);
 
-const public_endpoints =
-[
+const public_endpoints = [
     '/',
     '/login',
     '/register'
 ];
 
 
-async function request_dispatcher(request,response) {
+async function request_dispatcher(request, response) {
     const url = new URL(request.url, 'http://' + config.server.ip);
 
     const path = url.pathname;
@@ -287,10 +286,18 @@ async function request_dispatcher(request,response) {
     if (!handler) {
         response.writeHead(404);
 
-        response.end('Método no encontrado');
+        response.end(
+            'Método no encontrado'
+        );
 
         return;
     }
+
+    // =====================================
+    // DENEGADO POR DEFECTO
+    // =====================================
+
+    let access_granted = false;
 
     // =====================================
     // ENDPOINT PUBLICO
@@ -298,63 +305,41 @@ async function request_dispatcher(request,response) {
 
     const is_public = public_endpoints.includes(path);
 
-    if (!is_public) {
-        // =====================================
-        // USERNAME
-        // =====================================
-
+    if (is_public) {
+        access_granted = true;
+    }
+    else {
         const username = url.searchParams.get('username');
 
         console.log("Usuario recibido:", username);
-
-        // =====================================
-        // VALIDAR SESION
-        // =====================================
 
         const valid_session = validate_session(username);
 
         console.log("Sesión válida:", valid_session);
 
-        if (!valid_session) {
-            response.writeHead(401, {'Content-Type': 'application/json'});
+        if (valid_session) {
 
-            response.end(
-                JSON.stringify({
-                    error:
-                        "NO_SESSION"
-                })
-            );
+            const allowed = authorize(username, path);
 
-            return;
-        }
+            console.log("Autorizado:", allowed);
 
-        // =====================================
-        // AUTORIZAR
-        // =====================================
-
-        const allowed = authorize(username, path);
-
-        console.log("Autorizado:", allowed);
-
-        if (!allowed) {
-            response.writeHead(403, {'Content-Type': 'application/json'});
-
-            response.end(
-                JSON.stringify({
-                    error:
-                        "ACCESS_DENIED"
-                })
-            );
-
-            return;
+            if (allowed) {
+                access_granted = true;
+            }
         }
     }
 
     // =====================================
-    // EJECUTAR HANDLER
+    // EJECUTAR O DENEGAR
     // =====================================
 
-    return await handler(request,response);
+    if (access_granted) {
+        return await handler(request,response);
+    }
+
+    response.writeHead(403,{'Content-Type':'application/json'});
+    response.end(JSON.stringify({error: "ACCESS_DENIED"})
+    );
 }
 
 function start() {

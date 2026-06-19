@@ -3,6 +3,7 @@ import { URL } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { resolve } from 'node:path';
+import crypto from 'node:crypto';
 
 
 function default_config() {
@@ -46,6 +47,13 @@ function connect_db(path) {
     }
 }
 
+function hash_password(password) {
+    return crypto
+        .createHash('sha256')
+        .update(password)
+        .digest('hex');
+}
+
 const db = connect_db(config.database.path);
 
 let user_sessions = new Map();
@@ -58,14 +66,13 @@ class UserSession {
 }
 
 function authenticate(username, password) {
-    //Debería ir a la base de datos y buscar si existe (1) registro  username/password coincidente
-    //Si es verdadero entonces significa que estoy autenticado, sino no.
+    const sql = "SELECT count(*) as total FROM `user` WHERE username=? AND password_hash=?";
 
-    const sql = "SELECT count(*) as total FROM `user` WHERE username=? AND password=?";
+    const password_hash = hash_password(password);
 
     try {
         const stmt = db.prepare(sql);
-        const row = stmt.get(username, password);
+        const row = stmt.get(username, password_hash);
             
         return (row.total === 1);
     } catch (err) {
@@ -149,30 +156,32 @@ function validate_session(username) {
     );
 }
 
-// Lógica de negocio
+
 async function create_user(db, username, password) {
-    const sql = "INSERT INTO user (username, password) VALUES (?, ?) RETURNING id";
+
+    const password_hash = hash_password(password);
+
+    const sql = `INSERT INTO user (username, password_hash) VALUES(?, ?)`;
 
     try {
-        const stmt = db.prepare(sql);
-        const row = stmt.get(username, password);
 
-        const result = 
-        {
-            id: row.id,
-            username: username,
-            password: password
+        const stmt = db.prepare(sql);
+
+        const result = stmt.run(username, password_hash);
+
+        return {
+            status: true,
+            username: username
         };
-        
-        return result;
-    } catch (err) {
+
+    }
+    catch (err) {
+
         throw err;
     }
 }
 
 
-
-// Manejadores
 async function login_handler(request, response) {
     const url = new URL(request.url, 'http://' + config.server.ip);
     
@@ -211,20 +220,38 @@ async function login_handler(request, response) {
 
 
 async function register_handler(request, response) {
-    //Caso GET
-    const url = new URL(request.url, 'http://' + config.server.ip);
-    const input = Object.fromEntries(url.searchParams);
 
-    try {
-        const output = await create_user(db, 'test', '123456789');
+    if (request.method === 'POST') {
 
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify(output));
-    }
-    catch (err)
-    {
-        response.writeHead(500);
-        response.end(JSON.stringify({ error: err.message }));
+        let body = '';
+
+        request.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        request.on('end', async () => {
+
+            try {
+
+                const input = JSON.parse(body);
+
+                const output =
+                    await create_user(
+                        db,
+                        input.username,
+                        input.password
+                    );
+
+                response.writeHead(200, {'Content-Type': 'application/json'});
+                response.end(JSON.stringify(output));
+
+            }
+            catch (err) {
+
+                response.writeHead(500,{'Content-Type':'application/json'});
+                response.end(JSON.stringify({error: err.message}));
+            }
+        });
     }
 }
 
@@ -245,7 +272,6 @@ function say_hello_handler(request, response) {
     response.end(JSON.stringify({message:"HELLO_OK"}));
 }
 
-// Ruteo
 let router = new Map();
 router.set('/login', login_handler);
 router.set('/register', register_handler);
@@ -345,7 +371,7 @@ async function request_dispatcher(request, response) {
         return await handler(request,response);
     }
 
-    response.writeHead(403,{'Content-Type':'application/json'});
+    response.writeHead(403, {'Content-Type': 'application/json'});
     response.end(JSON.stringify({error: "ACCESS_DENIED"})
     );
 }

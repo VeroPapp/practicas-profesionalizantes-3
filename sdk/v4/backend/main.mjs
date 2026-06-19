@@ -9,8 +9,7 @@ function default_config() {
     const config = {
         server: {
             ip: '127.0.0.1',
-            port: 3000,
-            default_path: './index.html'
+            port: 8080,
         },
 
         database: {
@@ -210,18 +209,6 @@ async function login_handler(request, response) {
     
 }
 
-function default_handler(request, response) {
-    try {
-        const html = readFileSync(config.server.default_path, 'utf-8');
-        response.writeHead(200, {'Content-Type': 'text/html'});
-        response.end(html);
-    } 
-    catch (error) 
-    {
-        response.writeHead(500);
-        response.end('Error interno: No se pudo cargar la vista principal.');
-    }
-}
 
 async function register_handler(request, response) {
     //Caso GET
@@ -260,7 +247,6 @@ function say_hello_handler(request, response) {
 
 // Ruteo
 let router = new Map();
-router.set('/', default_handler);
 router.set('/login', login_handler);
 router.set('/register', register_handler);
 
@@ -268,13 +254,35 @@ router.set('/log', log_handler);
 router.set('/sayHello', say_hello_handler);
 
 const public_endpoints = [
-    '/',
     '/login',
     '/register'
 ];
 
 
 async function request_dispatcher(request, response) {
+    response.setHeader(
+        'Access-Control-Allow-Origin',
+        '*'
+    );
+
+    response.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, POST, OPTIONS'
+    );
+
+    response.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type'
+    );
+
+    if (request.method === 'OPTIONS')
+    {
+        response.writeHead(204);
+        response.end();
+        return;
+    }
+
+
     const url = new URL(request.url, 'http://' + config.server.ip);
 
     const path = url.pathname;

@@ -63,6 +63,14 @@
 </body>
 
 <script>
+    // =====================================
+    // CONFIG
+    // =====================================
+
+    const CONFIG = {
+        api_url: 'http://localhost:8080'
+    };
+
 
     // =====================================
     // SESION
@@ -107,7 +115,7 @@
         try {
             const response =
                 await fetch(
-                    '/login',
+                    CONFIG.api_url + '/login',
                     {
                         method: 'POST',
 
@@ -175,7 +183,7 @@
         try {
             const response =
                 await fetch(
-                    '/log?username=' + current_username
+                    CONFIG.api_url + '/log?username=' + current_username
                 );
 
             const result = await response.json();
@@ -210,7 +218,7 @@
         try{
             const response =
                 await fetch(
-                    '/sayHello?username=' + current_username
+                    CONFIG.api_url + '/sayHello?username=' + current_username
                 );
 
             const result = await response.json();

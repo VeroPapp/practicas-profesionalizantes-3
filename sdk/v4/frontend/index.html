@@ -113,20 +113,14 @@
         console.log("Intentando login...");
 
         try {
-            const response =
-                await fetch(
-                    CONFIG.api_url + '/login',
-                    {
+            const response = await fetch(CONFIG.api_url + '/login', {
                         method: 'POST',
 
                         headers: {
-                            'Content-Type': 'application/json'},
-
-                        body:
-                            JSON.stringify({
-                                username: username,
-                                password: password
-                            })
+                                    'Content-Type': 'application/json',
+                                    'x-user-id': username,
+                                    'x-api-key': password
+                                },
                     }
                 );
 
@@ -177,10 +171,12 @@
         }
 
         try {
-            const response =
-                await fetch(
-                    CONFIG.api_url + '/log?username=' + current_username
-                );
+            const response = await fetch(CONFIG.api_url + '/log', {
+                    headers : {
+                        'x-user-id': current_username
+                    }
+                }
+            );
 
             const result = await response.json();
 
@@ -212,10 +208,12 @@
         }
 
         try{
-            const response =
-                await fetch(
-                    CONFIG.api_url + '/sayHello?username=' + current_username
-                );
+            const response = await fetch(CONFIG.api_url + '/sayHello', {
+                    headers: {
+                        'x-user-id': current_username
+                    }
+                }
+            );
 
             const result = await response.json();
 

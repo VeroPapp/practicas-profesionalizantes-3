@@ -183,39 +183,34 @@ async function create_user(db, username, password) {
 
 
 async function login_handler(request, response) {
-    const url = new URL(request.url, 'http://' + config.server.ip);
-    
-    if ( request.method == "POST" ) {
-       let body = '';
-        request.on('data', chunk => {
-            body += chunk.toString();
-        });
+    if (request.method !== 'POST') {
 
-        request.on('end', async () => {
-            try 
-            {
-                const input = JSON.parse(body);
+        response.writeHead(405, { 'Content-Type': 'application/json' });
 
-                const output = login(input.username, input.password);
+        response.end(JSON.stringify({error: 'Método no permitido. Usa POST.'}));
 
-                response.writeHead(200, {'Content-Type': 'application/json'});
-                response.end(JSON.stringify(output));
-            } 
-            catch (err) 
-            {
-                response.writeHead(400, {'Content-Type': 'application/json'});
-                response.end(JSON.stringify({ error: 'Formato JSON inválido' }));
-            }
-        });
-    }
-    else
-    {
-        response.writeHead(405, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify({ error: 'Método no permitido. Usa POST.' }));
         return;
     }
-  
-    
+
+    try {
+
+        const username = request.headers['x-user-id'];
+
+        const password = request.headers['x-api-key'];
+
+        const output = login(username, password);
+
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+
+        response.end(JSON.stringify(output));
+
+    } catch (err) {
+
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+
+        response.end(JSON.stringify({error: err.message}));
+
+    }
 }
 
 
@@ -298,7 +293,7 @@ async function request_dispatcher(request, response) {
 
     response.setHeader(
         'Access-Control-Allow-Headers',
-        'Content-Type'
+        'Content-Type, x-user-id, x-api-key'
     );
 
     if (request.method === 'OPTIONS')
@@ -343,7 +338,7 @@ async function request_dispatcher(request, response) {
         access_granted = true;
     }
     else {
-        const username = url.searchParams.get('username');
+        const username = request.headers['x-user-id'] || null;
 
         console.log("Usuario recibido:", username);
 

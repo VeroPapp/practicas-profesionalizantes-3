@@ -68,7 +68,8 @@
     // =====================================
 
     const CONFIG = {
-        api_url: 'http://localhost:8080'
+        api_url: 'http://localhost:8080',
+        api_version: "1.0"
     };
 
 
@@ -95,6 +96,7 @@
 
         return {
             'Content-Type': 'application/json',
+            'x-api-version': CONFIG.api_version,
             'x-user-id': current_username,
             'x-api-key': current_password
         };
@@ -106,25 +108,35 @@
 
     async function RPCApiFetch(path, input = {}) {
 
-        const response =
-            await fetch(
-                CONFIG.api_url + path,
-                {
-                    method: 'POST',
+        const response = await fetch(CONFIG.api_url + path,
+            {
+                method: "POST",
+                headers: getRPCApiHeaders(),
+                body: JSON.stringify(input)
+            }
+        );
+        console.log(response.status);
 
-                    headers: getRPCApiHeaders(),
+        switch (response.status) {
 
-                    body: JSON.stringify(input)
-                }
-            );
+            case 200:
+                return await response.json();
 
-        const result = await response.json();
+            case 400:
+                throw new Error("Bad Request");
 
-        if (!response.ok) {
-            throw new Error(result.error);
+            case 401:
+                throw new Error("Unauthorized");
+
+            case 422:
+                throw new Error("Domain Error");
+
+            case 500:
+                throw new Error("Server Error");
+
+            default:
+                throw new Error("Unknown Error");
         }
-
-        return result;
     }
 
     // =====================================

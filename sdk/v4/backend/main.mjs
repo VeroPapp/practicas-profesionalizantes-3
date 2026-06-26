@@ -293,7 +293,7 @@ async function request_dispatcher(request, response) {
 
     response.setHeader(
         'Access-Control-Allow-Headers',
-        'Content-Type, x-user-id, x-api-key'
+        'Content-Type, x-user-id, x-api-key, x-api-version'
     );
 
     if (request.method === 'OPTIONS')
